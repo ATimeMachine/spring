@@ -12,6 +12,6 @@ public class TestIOC {
 
     @Test
     public void test1() {
-        new Controller().action();
+        new Controller(new IMysql()).action();
     }
 }
