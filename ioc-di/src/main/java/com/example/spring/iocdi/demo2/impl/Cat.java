@@ -1,4 +1,6 @@
-package com.example.spring.iocdi.demo2;
+package com.example.spring.iocdi.demo2.impl;
+
+import com.example.spring.iocdi.demo2.face.Animal;
 
 /**
  * FileName: Cat
@@ -6,7 +8,7 @@ package com.example.spring.iocdi.demo2;
  * Date:     2018/7/4 15:31
  * Description:
  */
-public class Cat {
+public class Cat implements Animal{
     private String name;
 
     private Integer age;
@@ -16,7 +18,8 @@ public class Cat {
         this.age = age;
     }
 
-    public String theCat() {
+    @Override
+    public String theAnimal() {
         return "一个" + age + "岁的猫：" + name;
     }
 }

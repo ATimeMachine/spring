@@ -1,4 +1,6 @@
-package com.example.spring.iocdi.demo2;
+package com.example.spring.iocdi.demo2.impl;
+
+import com.example.spring.iocdi.demo2.face.Fruit;
 
 /**
  * FileName: Apple
@@ -6,7 +8,7 @@ package com.example.spring.iocdi.demo2;
  * Date:     2018/7/4 15:25
  * Description:
  */
-public class Apple {
+public class Apple implements Fruit{
     private String name;
 
     private String color;
@@ -19,6 +21,7 @@ public class Apple {
         this.count = count;
     }
 
+    @Override
     public String getInfo() {
         return "苹果详情-品牌：" + name + ",颜色：" + color + "，数量：" + count;
     }
