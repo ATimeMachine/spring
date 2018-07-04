@@ -4,7 +4,7 @@ package com.example.spring.iocdi.demo1;
  * FileName: Controller
  * Author:   SunEee
  * Date:     2018/7/4 14:28
- * Description: 控制器
+ * Description: 初步认识IOC 和 DI
  */
 public class Controller {
     public IMysql iMysql;

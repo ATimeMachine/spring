@@ -6,7 +6,7 @@ import org.junit.Test;
  * FileName: TestIOC
  * Author:   SunEee
  * Date:     2018/7/4 14:33
- * Description: 测试
+ * Description: 初步认识IOC 和 DI
  */
 public class TestIOC {
 
