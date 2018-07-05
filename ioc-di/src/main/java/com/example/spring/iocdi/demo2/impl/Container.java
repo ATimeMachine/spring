@@ -54,6 +54,12 @@ public class Container {
         creatInstances(classLoader);
     }
 
+    /**
+     * 加载配置文件
+     * @param properties 配置文件对象
+     * @param classLoader 类加载器
+     * @param name 配置文件的名称
+     */
     private void loadProperties(Properties properties,ClassLoader classLoader,String name){
         Properties temp; //临时参数
         try {
@@ -100,13 +106,20 @@ public class Container {
         }
     }
 
+    /**
+     * 获得实例对象的构造函数的参数
+     * @param instanceClass 实例对象的字节码文件
+     * @param parameterTypes 实例对象的构造函数的参数
+     * @param declaredFields 实例对象的私有对象
+     * @return 获得实例对象的构造函数的参数
+     */
     private Object[] confirmParam(Class<?> instanceClass,Class<?>[] parameterTypes,Field[] declaredFields){
         Object[] objects = new Object[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; i++) {
             Class<?> clazz = parameterTypes[i];
             Object o = classMap.get(clazz);
             if (null != o) {
-                objects[i] = o;
+                objects[i] = o; //参数是对象
                 continue;
             }
 
@@ -115,7 +128,7 @@ public class Container {
             String property = params.getProperty(key);
             if (null != property){
                 if (clazz.equals(Integer.class)) {
-                    objects[i] = Integer.parseInt(property);
+                    objects[i] = Integer.parseInt(property); //参数是Integer
                 } else {
                     objects[i] = property;
                 }
@@ -125,6 +138,12 @@ public class Container {
     }
 
 
+    /**
+     * 获得类字节码的构造函数参数类型
+     * @param instanceClass 类字节码文件
+     * @param length 配置文件的参数条数
+     * @return 获得类字节码的构造函数参数类型
+     */
     private Class<?>[] getParameterTypes(Class<?> instanceClass, Integer length) {
         Constructor<?>[] declaredConstructors = instanceClass.getDeclaredConstructors();
         for (Constructor<?> constructor : declaredConstructors) {
