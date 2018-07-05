@@ -1,6 +1,5 @@
 package com.example.spring.iocdi.demo2.impl;
 
-import com.google.gson.Gson;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.util.ClassUtils;
@@ -115,8 +114,11 @@ public class Container {
             String key =instanceClass.getName() + "." + field.getName();
             String property = params.getProperty(key);
             if (null != property){
-                Gson gson = new Gson();
-                objects[i] = gson.fromJson(property, clazz);
+                if (clazz.equals(Integer.class)) {
+                    objects[i] = Integer.parseInt(property);
+                } else {
+                    objects[i] = property;
+                }
             }
         }
         return objects;
