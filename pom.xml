@@ -71,4 +71,7 @@
 		</plugins>
 	</build>
 
+	<modules>
+		<module>ioc-di</module>
+	</modules>
 </project>

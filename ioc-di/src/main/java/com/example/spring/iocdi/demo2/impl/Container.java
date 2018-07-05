@@ -1,10 +1,13 @@
 package com.example.spring.iocdi.demo2.impl;
 
+import com.google.gson.Gson;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ClassUtils;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.*;
 
@@ -16,15 +19,20 @@ import java.util.*;
  */
 public class Container {
 
+    private final String NAME_BEAN= "namebean.properties";
+    private final String PARAM_BEAN= "parambean.properties";
+
+
     private static Map<Class<?>,Object> classMap = new HashMap<>(); //容器
 
-    public static final  Properties properties = new Properties();
+    private static final Properties beans = new Properties();
+
+    private static final Properties params = new Properties();
 
     //原始构建容器，新建对象在外面，麻烦 ! 应该用配置文件（注解），详情看本类的构造器
     public static  <T>void build(Class<T> clazz,Object o){
         classMap.put(clazz,o);
     }
-
 
     /**
      * 获取对象
@@ -33,7 +41,6 @@ public class Container {
      */
     public static <T>T get(Class<T> clazz){
         Object o = classMap.get(clazz);
-
         return clazz.cast(o);
     }
 
@@ -43,44 +50,104 @@ public class Container {
 
     private void initialize() {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Set<String> name = new LinkedHashSet<>(loadNames(Wrold.class,classLoader));
-
+        loadProperties(beans,classLoader,NAME_BEAN);
+        loadProperties(params,classLoader,PARAM_BEAN);
+        creatInstances(classLoader);
     }
 
-
-
-    /**
-     * 获取制定的类名称
-     * @param clazz 类的字节码
-     * @param classLoader 类加载器
-     * @return 结果
-     */
-    private List<String> loadNames(Class<?> clazz, ClassLoader classLoader){
+    private void loadProperties(Properties properties,ClassLoader classLoader,String name){
         Properties temp; //临时参数
-        String name = clazz.getName();
-        ArrayList<String> result = new ArrayList<>();
-
         try {
-            Enumeration<URL> urls = classLoader.getResources("myclass.properties");
+            Enumeration<URL> urls = classLoader.getResources(name);
             while (urls.hasMoreElements()) {
                 URL url = urls.nextElement();
                 temp = PropertiesLoaderUtils.loadProperties(new UrlResource(url));
                 properties.putAll(temp);
-                String factoryClassNames = temp.getProperty(name);
-                result.addAll(Arrays.asList(StringUtils.commaDelimitedListToStringArray(factoryClassNames)));
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return result;
     }
 
-    private <T> List<T> creatInstances(Class<T> clazz,Class<?>[] parameterTypes, ClassLoader classLoader,Set<String> names) {
-        List<T> instances = new ArrayList<T>(names.size());
+    /**
+     * 实例化对象
+     * @param classLoader 类加载器
+     */
+    private void creatInstances(ClassLoader classLoader) {
+        Set<String> names = beans.stringPropertyNames();
         for (String name : names) {
+            try {
+                Class<?> instanceClass = ClassUtils.forName(name, classLoader);
+                int count = getParamCount(instanceClass);
+                Class<?>[] parameterTypes = getParameterTypes(instanceClass,count); //获取构造方法的参数类型
+                Field[] declaredFields = instanceClass.getDeclaredFields();//获取私有属性
+                Class<?>[] interfaces = instanceClass.getInterfaces();//获得实现的接口
+                Object[] args = confirmParam(instanceClass,parameterTypes, declaredFields);//获取对象参数
 
+                Constructor<?> constructor = instanceClass.getDeclaredConstructor(parameterTypes);
+                Object o = constructor.newInstance(args);
+
+                packageData(interfaces, o);
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         }
+    }
 
-        return instances;
+    private void packageData(Class<?>[] interfaces, Object o) {
+        classMap.put(o.getClass(), o);
+        for (Class<?> anInterface : interfaces) {
+            classMap.put(anInterface, o);
+        }
+    }
+
+    private Object[] confirmParam(Class<?> instanceClass,Class<?>[] parameterTypes,Field[] declaredFields){
+        Object[] objects = new Object[parameterTypes.length];
+        for (int i = 0; i < parameterTypes.length; i++) {
+            Class<?> clazz = parameterTypes[i];
+            Object o = classMap.get(clazz);
+            if (null != o) {
+                objects[i] = o;
+                continue;
+            }
+
+            Field field = declaredFields[i];
+            String key =instanceClass.getName() + "." + field.getName();
+            String property = params.getProperty(key);
+            if (null != property){
+                Gson gson = new Gson();
+                objects[i] = gson.fromJson(property, clazz);
+            }
+        }
+        return objects;
+    }
+
+
+    private Class<?>[] getParameterTypes(Class<?> instanceClass, Integer length) {
+        Constructor<?>[] declaredConstructors = instanceClass.getDeclaredConstructors();
+        for (Constructor<?> constructor : declaredConstructors) {
+            Class<?>[] parameterTypes = constructor.getParameterTypes();
+            if (length == parameterTypes.length) {
+                return parameterTypes;
+            }
+        }
+        return new Class[0];
+    }
+
+    /**
+     * 获取参数
+     * @param clazz clazz
+     * @return value
+     */
+    private int getParamCount(Class<?> clazz) {
+        List<Object> result = new ArrayList<>();
+        Set<Map.Entry<Object, Object>> entries = params.entrySet();
+        for (Map.Entry<Object, Object> entry : entries) {
+            String name = String.valueOf(entry.getKey());
+            if (name.startsWith(clazz.getName())){
+                result.add(entry.getValue());
+            }
+        }
+        return result.size();
     }
 }
