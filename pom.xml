@@ -73,5 +73,6 @@
 
 	<modules>
 		<module>ioc-di</module>
+		<module>aop</module>
 	</modules>
 </project>
