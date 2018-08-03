@@ -89,6 +89,7 @@ public class Container {
                 Class<?>[] interfaces = instanceClass.getInterfaces();//获得实现的接口
                 Object[] args = confirmParam(instanceClass,parameterTypes, declaredFields);//获取对象参数
 
+                //这个方法会返回制定参数类型的所有构造器，包括public的和非public的，当然也包括private的
                 Constructor<?> constructor = instanceClass.getDeclaredConstructor(parameterTypes);
                 Object o = constructor.newInstance(args);
 
